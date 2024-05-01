@@ -1,0 +1,12 @@
+D (distance): 219101213651089
+T (time): 40817772
+x = Time pressed
+
+Local distance = (Time - x) * x > D
+
+-x^2 + Tx > D
+-x^2 + Tx - D > 0
+
+x = (-T ± sqrt(T^2 - 4 * -1 * -D)) / 2 * -1
+
+x = (-T ± sqrt(T^2 - 4 * D)) / -2

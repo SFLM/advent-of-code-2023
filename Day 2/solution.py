@@ -1,9 +1,11 @@
 colors = ["red", "green", "blue"]
 all_games_info = []
+RED, GREEN, BLUE = 12, 13, 14
 
 def main():
     read_input("input.txt")
-    print(f"Solution: {get_solution2()}")
+    print(f"Solution 1: {get_solution1(RED, GREEN, BLUE)}")
+    print(f"Solution 2: {get_solution2()}")
 
 def read_input(file_name):
     with open(file_name) as f:

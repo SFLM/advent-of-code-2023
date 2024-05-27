@@ -42,13 +42,13 @@ def get_loop_length(pipe_map, starting_position, current_position = None, visite
         if check_direction:
             match direction_index:
                 case 0:
-                    return "SDFSD"
+                    return "DEVTEST"
                 case 1:
-                    return "Huh"
+                    return "DEVTEST"
                 case 2:
-                    return "When"
+                    return "DEVTEST"
                 case _:
-                    return "SDLKFKLSDF"
+                    return "DEVTEST"
 
 
 def is_accessible(pipe_map, from_position, to_position):

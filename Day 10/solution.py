@@ -13,7 +13,7 @@ PIPE_MAP = None
 
 
 def main():
-    with open("example2.txt") as f:
+    with open("input.txt") as f:
         global PIPE_MAP
         PIPE_MAP = f.read().splitlines()
     
@@ -22,7 +22,7 @@ def main():
 
 def solution1():
     entry_point = get_entry_point()
-    print(f"Solution 1: {get_loop_length(entry_point)}")
+    print(f"Solution 1: {get_furthest_point(entry_point)}")
 
 
 def get_entry_point():
@@ -31,8 +31,42 @@ def get_entry_point():
             if symbol == 'S':
                 return (row_number, column_number)
 
+def get_furthest_point(start_position):
+    loop_length = 0
+    current_position = start_position
+    last_position_direction = None
 
-def get_loop_length(start_position, current_position=None, last_position_direction=None, current_length=0):
+    while current_position != start_position or loop_length == 0:
+        # Check which directions are in range
+        directions_to_check = [True]*4 #Left, Right, Up, Down
+        if last_position_direction != None:
+            directions_to_check[last_position_direction] = False
+        if current_position[1] == 0:
+            directions_to_check[0] = False
+        if current_position[1] == len(PIPE_MAP[0])-1:
+            directions_to_check[1] = False
+        if current_position[0] == 0:
+            directions_to_check[2] = False
+        if current_position[0] == len(PIPE_MAP):
+            directions_to_check[3] = False
+        
+        for direction_index, do_check in enumerate(directions_to_check):
+            if do_check:
+                next_pipe = is_accessible(current_position, direction_index)
+                if next_pipe:
+                    if direction_index % 2 == 0:
+                        last_position_direction = direction_index+1
+                    else:
+                        last_position_direction = direction_index-1
+                    current_position = next_pipe
+                    loop_length += 1
+                    break
+        
+    return int(loop_length/2)
+
+
+
+def get_loop_length_old(start_position, current_position=None, last_position_direction=None, current_length=0):
     if current_position == start_position:
         return current_length
         

@@ -17,12 +17,18 @@ def main():
         global PIPE_MAP
         PIPE_MAP = f.read().splitlines()
     
-    solution1()
-
-
-def solution1():
     entry_point = get_entry_point()
-    print(f"Solution 1: {get_furthest_point(entry_point)}")
+    solution1(entry_point)
+    solution2(entry_point)
+
+
+def solution1(entry_point):
+    print(f"Solution 1: {loop_info(entry_point)['solution_1']}")
+
+
+def solution2(entry_point):
+    info = loop_info(entry_point)
+    print(f"Solution 2: {flood_fill_algo(info['start_opening_directions'], info['explored_path'])}")
 
 
 def get_entry_point():
@@ -31,12 +37,14 @@ def get_entry_point():
             if symbol == 'S':
                 return (row_number, column_number)
 
-def get_furthest_point(start_position):
-    loop_length = 0
+
+def loop_info(start_position):
+    explored_path = set()
     current_position = start_position
     last_position_direction = None
+    start_position_pipe_opening = None
 
-    while current_position != start_position or loop_length == 0:
+    while current_position != start_position or len(explored_path) == 0:
         # Check which directions are in range
         directions_to_check = [True]*4 #Left, Right, Up, Down
         if last_position_direction != None:
@@ -54,51 +62,42 @@ def get_furthest_point(start_position):
             if do_check:
                 next_pipe = is_accessible(current_position, direction_index)
                 if next_pipe:
+                    if not start_position_pipe_opening:
+                        start_position_pipe_opening = direction_index
                     if direction_index % 2 == 0:
                         last_position_direction = direction_index+1
                     else:
                         last_position_direction = direction_index-1
                     current_position = next_pipe
-                    loop_length += 1
+                    explored_path.add(next_pipe)
                     break
-        
-    return int(loop_length/2)
-
-
-
-def get_loop_length_old(start_position, current_position=None, last_position_direction=None, current_length=0):
-    if current_position == start_position:
-        return current_length
-        
-    if current_position == None:
-        current_position = start_position
     
-    current_length += 1
+    start_pipe_direction_openings = [False]*4
+    start_pipe_direction_openings[start_position_pipe_opening] = True
+    start_pipe_direction_openings[last_position_direction] = True
+    return {"solution_1": int(len(explored_path)/2), "explored_path": explored_path, "start_opening_directions": start_pipe_direction_openings}
 
-    # Check which directions are in range
-    directions_to_check = [True]*4 #Left, Right, Up, Down
-    if last_position_direction != None:
-        directions_to_check[last_position_direction] = False
-    if current_position[1] == 0:
-        directions_to_check[0] = False
-    if current_position[1] == len(PIPE_MAP[0])-1:
-        directions_to_check[1] = False
-    if current_position[0] == 0:
-        directions_to_check[2] = False
-    if current_position[0] == len(PIPE_MAP):
-        directions_to_check[3] = False
-    
-    for direction_index, do_check in enumerate(directions_to_check):
-        if do_check:
-            next_pipe = is_accessible(current_position, direction_index)
-            if next_pipe:
-                if direction_index % 2 == 0:
-                    receiving_direction = direction_index+1
+
+def flood_fill_algo(start_pipe_openings, loop_path):
+    side1_tiles = 0
+    side2_tiles = 0
+    first_side = True
+    for row_position, row in enumerate(PIPE_MAP):
+        for col_position, tile in enumerate(row):
+            if (row_position, col_position) in loop_path:
+                if tile == 'S':
+                    if start_pipe_openings[3]:
+                        first_side = not first_side
+                elif PIPE_DICT[tile][3]:
+                    first_side = not first_side
+            else:
+                if first_side:
+                    side1_tiles += 1
                 else:
-                    receiving_direction = direction_index-1
-                return get_loop_length(start_position, next_pipe, receiving_direction, current_length)
+                    side2_tiles += 1
     
-    return current_length/2
+    return (side1_tiles, side2_tiles)
+
 
 def is_accessible(from_position, direction):
     from_row, from_column = from_position

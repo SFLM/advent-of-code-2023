@@ -2,23 +2,25 @@ def main():
     with open("example.txt") as f:
         data_image = f.read().splitlines()
     
-    solution1(data_image)
+    expanded_universe = expand_universe(data_image)
+    galaxies_dict = get_galaxies(expanded_universe)
+    
+    solution1(expanded_universe, galaxies_dict)
     # solution2(data_image)
 
 
-def solution1(data):
+def solution1(data, galaxies):
+
+    print(f"Solution 1: {get_total_distance(data, galaxies)}")
+
+
+def solution2(data):
     expanded_universe = expand_universe(data)
     galaxies_dict = get_galaxies(expanded_universe)
-    unprocessed_galaxies = [x for x in range(len(galaxies_dict))]
-    total_distance = 0
 
-    while unprocessed_galaxies:
-        current_galaxy = unprocessed_galaxies.pop()
-        for other_galaxy in unprocessed_galaxies:
-            total_distance += abs(galaxies_dict[current_galaxy][0]-galaxies_dict[other_galaxy][0])
-            total_distance += abs(galaxies_dict[current_galaxy][1]-galaxies_dict[other_galaxy][1])
+    print(f"!!! Solution 2 galaxies: {galaxies_dict}")
 
-    print(total_distance)
+    print(f"Solution 2: {get_total_distance(expanded_universe, galaxies_dict)}")
 
 
 def expand_universe(data_image):
@@ -57,6 +59,24 @@ def get_galaxies(data_image):
                 galaxy_index += 1
     
     return galaxies_dict
+
+
+def get_total_distance(data_image, galaxies_dict, old_galaxies=False):
+    unprocessed_galaxies = [x for x in range(len(galaxies_dict))]
+    total_distance = 0
+
+    if old_galaxies:
+        pass
+    else:
+        while unprocessed_galaxies:
+            current_galaxy = unprocessed_galaxies.pop()
+            for other_galaxy in unprocessed_galaxies:
+                total_distance += abs(galaxies_dict[current_galaxy][0]-galaxies_dict[other_galaxy][0])
+                total_distance += abs(galaxies_dict[current_galaxy][1]-galaxies_dict[other_galaxy][1])
+    
+    return total_distance
+
+
 
 if __name__ == "__main__":
     main()

@@ -30,18 +30,24 @@ def solution2(data_image: str) -> int:
     
     return total
 
-def get_smudged_value(map: list, row_position: int = 0, column_position: int = 0) -> int:
+
+@cache
+def get_smudged_value(map: tuple, row_position: int = 0, column_position: int = 0) -> int:
     column_length = len(map)
     row_length = len(map[0])
     for row_index in range(column_length):
         for column_index in range(row_length):
-            changed_map = deepcopy(map)
             symbol = map[row_position][column_position]
             if symbol == '#':
                 new_symbol = '.'
             else:
                 new_symbol = '#'
-            changed_map[row_index][column_index] = new_symbol
+            changed_map = deepcopy(map)
+            workaround_map = list(changed_map)
+            workaround2_map = list(workaround_map[row_index])
+            workaround2_map[column_index] = new_symbol
+            workaround_map[row_index] = tuple(workaround2_map)
+            changed_map = tuple(workaround_map)
 
             original_value = get_mirror_value(map)
 
@@ -53,7 +59,8 @@ def get_smudged_value(map: list, row_position: int = 0, column_position: int = 0
     return original_value
 
 
-def get_mirror_value(map: list, original_value: int = -1) -> int:
+@cache
+def get_mirror_value(map: tuple, original_value: int = -1) -> int:
     total = 0
     # Horizontal check
     horizontal_positions = []
@@ -90,6 +97,7 @@ def get_mirror_value(map: list, original_value: int = -1) -> int:
     return total
 
 
+@cache
 def get_mirror_positions(series: tuple) -> int:
     possible_locations = set()
     for depth in range(len(series) - 1):
@@ -98,6 +106,7 @@ def get_mirror_positions(series: tuple) -> int:
     return possible_locations
 
 
+@cache
 def check_mirrored(series: tuple, position: int) -> bool:
     for depth in range(position + 1):
         if position + depth + 1 == len(series):
@@ -107,14 +116,14 @@ def check_mirrored(series: tuple, position: int) -> bool:
     return True
 
 
-def parse_data(data_image: str) -> list:
+def parse_data(data_image: str) -> tuple:
     raw_maps = data_image.split("\n\n")
 
     maps = []
     for raw_map in raw_maps:
-        maps.append([[symbol for symbol in x] for x in raw_map.split('\n')])
+        maps.append(tuple(tuple(symbol for symbol in x) for x in raw_map.split('\n')))
     
-    return maps
+    return tuple(maps)
 
 
 if __name__ == "__main__":

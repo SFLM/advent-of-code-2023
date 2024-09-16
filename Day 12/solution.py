@@ -1,6 +1,5 @@
 from collections import deque
 from functools import cache
-import copy
 
 def main():
     with open("input.txt") as f:

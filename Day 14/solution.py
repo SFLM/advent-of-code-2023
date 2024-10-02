@@ -1,37 +1,62 @@
 from functools import cache
 from typing import Union
+import time
 
 CUBE_LOCATIONS = dict()
+PATTERNS = dict()
 
 def main():
 
-    with open("example.txt") as f:
+    with open("input.txt") as f:
         data = tuple(f.read().splitlines())
 
     initialize_cube_locations(data)
     
-    # solution1(data)
+    solution1(data)
     solution2(data)
 
 
 def solution1(raw_data: tuple) -> None:
+    start_time = time.time()
     tilted_data = tilt(raw_data)
-    for row in tilted_data:
-        print(row)
-    print(f"Solution 1: {get_total_load(tilted_data)}")
+    answer = get_total_load(tilted_data)
+    end_time = time.time()
+
+    print(f"Solution 1: {answer}, time elapsed: {end_time - start_time}")
 
 
 def solution2(data) -> None:
+    global PATTERNS
+
+    ROTATIONS = 1000000000
+    start_time = time.time()
+    rotated_data = get_rotated_result(data, ROTATIONS)
+    answer = get_total_load(rotated_data)
+    end_time = time.time()
+
+    print(f"Solution 2: {answer}, time elapsed: {end_time - start_time}")
+
+
+def get_rotated_result(data: tuple, initial_rotations: int) -> tuple:
+    rotations = initial_rotations
+
     rotated_data = data
+    while rotations > 0:
+        if rotated_data in PATTERNS:
+            pattern_length = len(PATTERNS[rotated_data])
+            if pattern_length <= rotations:
+                final_rotations = rotations % pattern_length
+                return PATTERNS[rotated_data][final_rotations - 1]
+            return PATTERNS[rotated_data][rotations - 1]
 
-    ROTATIONS = 1000000
-    for _ in range(ROTATIONS):
-        rotated_data = rotate(rotated_data)
+        result = rotate(rotated_data)
+        PATTERNS.update({rotated_data: []})
+        for input in PATTERNS:
+            PATTERNS[input].append(result)
+        rotated_data = result
+        rotations -= 1
     
-    for row in rotated_data:
-        print(row)
-
-    print(f"Solution 2: {get_total_load(rotated_data)}")
+    return rotated_data
 
 
 def initialize_cube_locations(data: tuple) -> None:
@@ -46,35 +71,36 @@ def initialize_cube_locations(data: tuple) -> None:
 def rotate(raw_data: tuple) -> tuple:
     new_data = raw_data
     for direction in range(4):
-        new_data = tuple(tilt(new_data, direction))
+        new_data = tilt(new_data, direction)
     
     return new_data
 
 
 @cache
 def tilt(raw_data: tuple, direction: int = 0) -> tuple: # North, West, South, East
+
     new_data = []
 
     if direction == 0: # North
         for column_index, column in enumerate(tuple([*zip(*raw_data)][::-1])): # (rotates left, no reverse)
             new_data.append(tilt_row(column, column_index, False))
         
-        return [*zip(*new_data[::-1])]
+        return tuple([*zip(*new_data[::-1])])
     if direction == 1: # West
         for row_index, row in enumerate(raw_data): # (no rotation, no reverse)
             new_data.append(tilt_row(row, row_index, True))
         
-        return new_data
+        return tuple(new_data)
     if direction == 2: # South
         for column_index, column in enumerate(tuple([*zip(*raw_data)][::-1])): # (rotates left, reverse)
             new_data.append(tilt_row(column, column_index, False, True))
         
-        return [*zip(*new_data[::-1])]
+        return tuple([*zip(*new_data[::-1])])
     else: # East
         for row_index, row in enumerate(raw_data): # (no rotation, reverse)
             new_data.append(tilt_row(row, row_index, True, True))
         
-        return new_data
+        return tuple(new_data)
 
 
 @cache
@@ -100,51 +126,33 @@ def tilt_row(row: Union[tuple, str], row_number_raw: int, is_row: bool = True, r
         if reverse:
             return space_string + rock_string
         return rock_string + space_string
-    else:
-        new_row = ""
-        last_barrier = 0
-        rock_amount = 0
-        for cube_location in row_cubes:
-            rock_amount = row[last_barrier:cube_location].count('O')
-            rock_string = 'O' * rock_amount
-            space_string = '.' * (cube_location - rock_amount - last_barrier)
-            if reverse:
-                new_row += space_string + rock_string
-            else:
-                new_row += rock_string + space_string
-            new_row += '#'
-            last_barrier = cube_location + 1
 
-        rock_amount = row[last_barrier:row_length].count('O')
+    new_row = ""
+    last_barrier = 0
+    rock_amount = 0
+    for cube_location in row_cubes:
+        rock_amount = row[last_barrier:cube_location].count('O')
         rock_string = 'O' * rock_amount
-        space_string = '.' * (row_length - rock_amount - last_barrier)
+        space_string = '.' * (cube_location - rock_amount - last_barrier)
         if reverse:
             new_row += space_string + rock_string
         else:
             new_row += rock_string + space_string
-        return new_row
+        new_row += '#'
+        last_barrier = cube_location + 1
+
+    rock_amount = row[last_barrier:row_length].count('O')
+    rock_string = 'O' * rock_amount
+    space_string = '.' * (row_length - rock_amount - last_barrier)
+    if reverse:
+        new_row += space_string + rock_string
+    else:
+        new_row += rock_string + space_string
+    return new_row
 
 
 def get_cube_locations(data_row: Union[tuple, str]) -> tuple:
     return tuple([index for index, symbol in enumerate(data_row) if symbol == '#'])
-
-
-@cache
-def tilt_OLD(data: tuple) -> tuple:
-    row_amount, col_amount = (len(data), len(data[0]))
-    column_heights_dict = {pos: 0 for pos in range(col_amount)}
-    new_data = [['.' for _ in range(col_amount)] for _ in range(row_amount)]
-
-    for vertical_position, row in enumerate(data):
-        for horizontal_position, symbol in enumerate(row):
-            if symbol == 'O':
-                new_data[column_heights_dict[horizontal_position]][horizontal_position] = 'O'
-                column_heights_dict[horizontal_position] += 1
-            elif symbol == '#':
-                new_data[vertical_position][horizontal_position] = '#'
-                column_heights_dict[horizontal_position] = vertical_position + 1
-
-    return new_data
 
 
 def get_total_load(data: tuple) -> int:

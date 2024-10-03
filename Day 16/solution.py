@@ -7,11 +7,15 @@ def main():
     # solution2(data)
 
 
-def solution1(data) -> None:
-    print(data)
+def solution1(data: list) -> None:
+    pass
 
 
 def solution2(data) -> None:
+    pass
+
+
+def generate_beam(floor_map: list) -> list:
     pass
 
 
